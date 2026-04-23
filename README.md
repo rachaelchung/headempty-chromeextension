@@ -1,4 +1,4 @@
-# head empty — focus overlay (chrome extension)
+# ☺︎ head empty — focus overlay (chrome extension)
 
 *for all those assignments you forget to do…and don't want to do.*
 
