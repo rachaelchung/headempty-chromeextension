@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>head empty — account</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --beige:      #fdf6ec;
+      --beige-dark: #f5e9d3;
+      --beige-edge: #d4c4b0;
+      --ink:        #1a1208;
+      --ink-light:  #5a4a2e;
+      --red:        #e8392a;
+      --blue:       #1e6fd9;
+      --yellow:     #f5c518;
+      --green:      #3bbf6e;
+      --card-shadow:    4px 4px 0px var(--ink);
+      --card-shadow-lg: 6px 6px 0px var(--ink);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: var(--beige);
+      color: var(--ink);
+      min-height: 100vh;
+      padding: 0;
+    }
+
+    /* dot texture */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        radial-gradient(circle, var(--yellow) 2px, transparent 2px),
+        radial-gradient(circle, var(--blue) 1.5px, transparent 1.5px),
+        radial-gradient(circle, var(--red) 1px, transparent 1px);
+      background-size: 80px 80px, 120px 120px, 60px 60px;
+      background-position: 10px 10px, 45px 55px, 25px 70px;
+      opacity: 0.08;
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ── page header ── */
+    .page-header {
+      display: flex; align-items: center; gap: 10px;
+      padding: 18px 28px 14px;
+      border-bottom: 3px solid var(--ink);
+      background: var(--beige);
+      position: relative; z-index: 1;
+    }
+    .brand-logo { width: 30px; height: 30px; flex-shrink: 0; }
+    .brand-name {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.2rem; text-transform: lowercase; color: var(--ink);
+    }
+    .brand-name span { color: var(--red); }
+    .page-header-sub {
+      margin-left: auto;
+      font-family: 'Fredoka One', cursive;
+      font-size: 0.85rem; color: var(--ink-light); text-transform: lowercase;
+    }
+
+    /* ── main content ── */
+    .main {
+      position: relative; z-index: 1;
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 28px 24px 48px;
+    }
+
+    /* ── section card ── */
+    .card {
+      background: var(--beige-dark);
+      border: 3px solid var(--ink);
+      border-radius: 20px;
+      padding: 22px 22px 20px;
+      box-shadow: var(--card-shadow-lg);
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.1rem; text-transform: lowercase;
+      color: var(--ink); margin-bottom: 6px;
+    }
+
+    /* ── callout ── */
+    .callout {
+      font-size: 0.82rem; font-weight: 600;
+      color: var(--ink-light); line-height: 1.55;
+      background: var(--beige);
+      border: 2.5px solid var(--ink);
+      border-radius: 14px; padding: 12px 14px;
+      margin-bottom: 18px;
+      box-shadow: 3px 3px 0 var(--ink);
+    }
+    .callout strong { display: block; margin-bottom: 5px; color: var(--ink); font-weight: 800; }
+    .callout code {
+      font-family: 'Courier New', monospace; font-size: 0.8em;
+      background: var(--beige-dark); padding: 1px 5px; border-radius: 5px;
+      border: 1.5px solid var(--beige-edge); color: var(--ink);
+    }
+
+    /* ── form ── */
+    label {
+      display: block; font-size: 0.75rem; font-weight: 800;
+      letter-spacing: 0.04em; text-transform: lowercase;
+      color: var(--ink-light); margin: 14px 0 5px;
+    }
+    label:first-of-type { margin-top: 0; }
+
+    input[type="text"],
+    input[type="password"],
+    input[type="url"] {
+      width: 100%;
+      padding: 11px 14px;
+      font-family: 'Nunito', sans-serif; font-size: 0.9rem; font-weight: 700;
+      border: 2.5px solid var(--ink); border-radius: 12px;
+      background: var(--beige); color: var(--ink); outline: none;
+      transition: box-shadow 0.15s, border-color 0.15s;
+    }
+    input::placeholder { color: var(--beige-edge); }
+    input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(30,111,217,0.15); }
+
+    /* ── advanced details ── */
+    details.advanced {
+      margin-bottom: 14px;
+      background: var(--beige);
+      border: 2px dashed var(--ink);
+      border-radius: 12px; padding: 10px 14px;
+    }
+    details.advanced summary {
+      cursor: pointer; font-size: 0.78rem; font-weight: 800;
+      text-transform: lowercase; letter-spacing: 0.03em; color: var(--ink-light);
+      list-style: none; display: flex; align-items: center; gap: 6px;
+    }
+    details.advanced summary::before {
+      content: '▶'; font-size: 0.6rem; transition: transform 0.15s;
+    }
+    details[open].advanced summary::before { transform: rotate(90deg); }
+    details.advanced label { margin-top: 10px; }
+
+    /* ── buttons ── */
+    .btn-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 11px 20px;
+      font-family: 'Fredoka One', cursive; font-size: 0.95rem;
+      border-radius: 12px; border: 2.5px solid var(--ink);
+      cursor: pointer; text-transform: lowercase;
+      box-shadow: var(--card-shadow);
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+    .btn:hover  { transform: translate(-2px,-2px); box-shadow: var(--card-shadow-lg); }
+    .btn:active { transform: translate(2px,2px);   box-shadow: 1px 1px 0 var(--ink); }
+
+    .btn-primary { background: var(--red);    color: #fff; }
+    .btn-ghost   { background: var(--beige-dark); color: var(--ink); }
+    .btn-yellow  { background: var(--yellow); color: var(--ink); }
+
+    /* ── status ── */
+    .status {
+      margin-top: 14px; padding: 11px 14px;
+      border-radius: 12px; border: 2.5px solid var(--ink);
+      font-size: 0.86rem; font-weight: 700; line-height: 1.5;
+      box-shadow: 3px 3px 0 var(--ink); white-space: pre-wrap;
+    }
+    .status:empty { display: none; }
+    .status--ok    { background: #dcfce7; color: var(--ink); }
+    .status--error { background: #fde8e8; color: var(--ink); }
+  </style>
+</head>
+<body>
+
+  <!-- page header -->
+  <header class="page-header">
+    <svg class="brand-logo" viewBox="0 0 30 30">
+      <circle cx="15" cy="15" r="13.5" fill="#f5c518" stroke="#1a1208" stroke-width="2.5"/>
+      <circle cx="11"  cy="13" r="1.9" fill="#1a1208"/>
+      <circle cx="19"  cy="13" r="1.9" fill="#1a1208"/>
+      <path d="M11 19 Q15 23 19 19" stroke="#1a1208" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+    </svg>
+    <span class="brand-name">head <span>empty</span>.</span>
+    <span class="page-header-sub">account settings</span>
+  </header>
+
+  <main class="main">
+
+    <!-- google callout -->
+    <div class="callout">
+      <strong>🔑 using google / "continue in browser"?</strong>
+      after signing in on your site, open <code>app.html</code> in this same browser. the extension copies your session automatically. refresh the app tab once if needed, then hit <strong>verify session</strong> below. make sure your origin (e.g. <code>https://your.app/*</code>) is listed in <code>manifest.json</code> under <code>content_scripts</code>.
+    </div>
+
+    <!-- sign-in card -->
+    <div class="card">
+      <div class="card-title">sign in ✨</div>
+
+      <form id="loginForm" autocomplete="on">
+        <details class="advanced" id="apiAdvanced">
+          <summary>advanced: override api base url</summary>
+          <label for="apiBase">custom url (no trailing slash) — leave blank for auto-detect</label>
+          <input type="url" id="apiBase" name="apiBase"
+            placeholder="https://your-api.com" spellcheck="false" />
+        </details>
+
+        <label for="ident">email or username</label>
+        <input type="text" id="ident" name="ident"
+          autocomplete="username" placeholder="you@school.edu" required />
+
+        <label for="password">password <span style="font-weight:600;opacity:.7">(skip if you use google + browser tab)</span></label>
+        <input type="password" id="password" name="password"
+          autocomplete="current-password" placeholder="••••••••" />
+
+        <div class="btn-row">
+          <button type="submit" class="btn btn-primary" id="loginBtn">sign in →</button>
+          <button type="button" class="btn btn-yellow" id="verifyBtn">verify session</button>
+          <button type="button" class="btn btn-ghost"  id="logoutBtn">log out</button>
+        </div>
+      </form>
+    </div>
+
+    <div id="status" class="status" role="status" aria-live="polite"></div>
+
+  </main>
+
+  <script src="options.js"></script>
+</body>
+</html>

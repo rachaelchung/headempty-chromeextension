@@ -1,0 +1,678 @@
+/* Extension overlay: pass-through via pointer-events (unified overlay.html) or two iframes
+   (overlay-timer + overlay-lane) so the host page receives clicks outside the timer/lane. */
+
+:root {
+  /* Aligned with css/style.css design tokens */
+  --beige: #fdf6ec;
+  --beige-dark: #f5e9d3;
+  --beige-edge: #d4c4b0;
+  --red: #e8392a;
+  --blue: #1e6fd9;
+  --yellow: #f5c518;
+  --green: #3bbf6e;
+  --ink: #1a1208;
+  --ink-light: #5a4a2e;
+  --card-shadow: 4px 4px 0px var(--ink);
+  --card-shadow-lg: 6px 6px 0px var(--ink);
+  --cartoon-ink: #1a1208;
+  --cartoon-shadow: 4px 4px 0 rgba(26, 18, 8, 0.22);
+  --paper: var(--beige);
+  --paper-2: var(--beige-dark);
+  --paper-edge: var(--beige-edge);
+  --text-primary: #1a1208;
+  --text-muted: #5a4a2e;
+  --sun: #ffd54f;
+  --sun-glow: #fff59d;
+  --coral: #e8392a;
+  --coral-soft: #fde8e8;
+  --mint: #3bbf6e;
+  --mint-soft: #dff8ea;
+  --pool: #1e6fd9;
+  --pool-soft: #dbeafe;
+  --shadow-soft: 0 18px 50px rgba(26, 18, 8, 0.12);
+  --shadow-lift: 0 8px 0 rgba(26, 18, 8, 0.06);
+  --radius-btn: 999px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Pass-through: `pointer-events: none` on only html/body can break hit-testing to
+   children in extension iframes (Chromium). Disable the whole tree, then re-enable
+   the timer and lane creatures (ID beats `html *` in the cascade). */
+html,
+html * {
+  pointer-events: none !important;
+}
+
+#timerDock,
+#timerDock * {
+  pointer-events: auto !important;
+}
+
+#extCreatureLane .ext-creature {
+  pointer-events: auto !important;
+}
+
+/* forced-color-adjust helps sites (e.g. Google) that trigger forced/surfaces and odd white compositing */
+html {
+  margin: 0;
+  width: 100%;
+  min-height: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: transparent !important;
+  background-color: rgba(0, 0, 0, 0) !important;
+  color-scheme: light;
+  forced-color-adjust: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body,
+body.ext-ov-body {
+  font-family: 'Nunito', system-ui, sans-serif;
+}
+
+body,
+body.ext-ov-body {
+  margin: 0;
+  width: 100%;
+  min-height: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: transparent !important;
+  background-color: rgba(0, 0, 0, 0) !important;
+  forced-color-adjust: none;
+}
+
+/* Timer dock (mirrors css/style.css) */
+.timer-dock {
+  position: fixed;
+  z-index: 2147483601;
+  top: calc(12px + env(safe-area-inset-top, 0));
+  right: calc(10px + env(safe-area-inset-right, 0));
+  left: auto;
+  width: min(520px, calc(100vw - 20px));
+  box-sizing: border-box;
+  isolation: isolate;
+  -webkit-tap-highlight-color: transparent;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  transition: opacity 0.25s ease, visibility 0.25s;
+}
+.timer-dock--hidden {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/*
+ * Timer-only iframe: never 100vw (see block above re: nested iframes). Do not use 100%
+ * here either — the host iframe is sized to this panel; 100% makes the dock = iframe
+ * width, which can stretch the panel and report the wrong w/h. Let the dock size to
+ * its content, pinned to the inner right (matches default top-right on the real page
+ * when the parent iframe is flush right).
+ */
+html.ext-ov-timer .timer-dock:not(.timer-dock--minimized) {
+  width: auto !important;
+  max-width: 520px !important;
+  min-width: 300px;
+  right: 0;
+  top: calc(12px + env(safe-area-inset-top, 0));
+  left: auto;
+  box-sizing: border-box;
+}
+
+.timer-dock--dragging {
+  transition: none !important;
+}
+
+.timer-dock--dragging .timer-dock__handle {
+  cursor: grabbing;
+}
+
+.timer-dock--minimized {
+  top: 50% !important;
+  left: auto !important;
+  right: max(0px, env(safe-area-inset-right, 0)) !important;
+  width: 58px !important;
+  min-width: 58px;
+  max-width: 58px;
+  transform: translateY(-50%) !important;
+  transition: width 0.2s ease, transform 0.2s ease, right 0.2s ease;
+}
+
+.timer-dock--minimized .timer-dock__shell {
+  border-radius: 20px 0 0 20px;
+  cursor: pointer;
+}
+
+.timer-dock--minimized .timer-dock__handle {
+  padding: 0 2px 0 4px;
+  cursor: pointer;
+}
+
+.timer-dock--minimized .timer-dock__handle-spacer,
+.timer-dock--minimized .timer-dock__grip {
+  display: none;
+}
+
+.timer-dock--minimized .timer-dock__pin-btn {
+  width: 100%;
+  min-height: 28px;
+  border-radius: 10px;
+  margin: 0 2px;
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.timer-dock--minimized .timer-dock__inner {
+  padding: 8px 4px 10px;
+  border-radius: 0 0 0 18px;
+}
+
+.timer-dock--minimized .ext-forbidden-wrap {
+  display: none;
+}
+
+.timer-dock--minimized .timer-row--float {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+}
+
+.timer-dock--minimized .timer-ring-wrap--float {
+  width: 44px;
+  height: 44px;
+}
+
+.timer-dock--minimized .timer-dock__inner .timer-svg {
+  opacity: 0.88;
+}
+
+.timer-dock--minimized .timer-side--float {
+  display: none !important;
+}
+
+.timer-dock--minimized .timer-time {
+  font-size: 0.5rem !important;
+  padding: 0.3em 0.4em;
+}
+
+.timer-dock--minimized .phase-badge {
+  display: none !important;
+}
+
+.timer-dock--minimized.timer-dock--dragging,
+.timer-dock--minimized .timer-dock__handle {
+  cursor: pointer;
+  touch-action: auto;
+}
+
+/* dock shell — neo-brutalist card (style.css) */
+.timer-dock__shell {
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 20px;
+  overflow: hidden;
+  background: var(--beige);
+  border: 3px solid var(--ink);
+  box-shadow: var(--card-shadow-lg);
+}
+
+html.ext-ov-timer .timer-row--float {
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+html.ext-ov-timer .timer-side--float {
+  min-width: 200px;
+  flex-shrink: 0;
+}
+
+.timer-dock__handle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  height: 28px;
+  flex-shrink: 0;
+  padding: 0 4px;
+  pointer-events: auto !important;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  background: var(--ink);
+  border-bottom: none;
+}
+.timer-dock__handle:hover {
+  background: #2a1e0c;
+}
+.timer-dock__handle:focus {
+  outline: none;
+}
+.timer-dock__handle:focus-visible {
+  box-shadow: inset 0 0 0 2px rgba(245, 197, 24, 0.7);
+}
+
+.timer-dock__handle-spacer {
+  width: 32px;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
+.timer-dock__pin-btn {
+  flex-shrink: 0;
+  width: 32px;
+  height: 22px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.12s, transform 0.1s;
+}
+.timer-dock__pin-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+.timer-dock__pin-btn:active {
+  transform: scale(0.95);
+}
+.timer-dock__pin-btn:focus {
+  outline: none;
+}
+.timer-dock__pin-btn:focus-visible {
+  box-shadow: 0 0 0 2px rgba(245, 197, 24, 0.7);
+}
+
+.timer-dock__grip {
+  display: flex;
+  flex: 1 1 auto;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  pointer-events: none;
+}
+
+.timer-dock__grip span {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.ext-forbidden-wrap {
+  background: var(--beige-dark);
+  border-bottom: 2px solid var(--ink);
+}
+
+.ext-forbidden-bar {
+  margin: 0;
+  padding: 8px 12px 9px;
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+  color: #fff5f5;
+  background: linear-gradient(90deg, #b71c1c, #c62828, #b71c1c);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
+}
+
+.ext-forbidden-bar[hidden] {
+  display: none !important;
+}
+
+.timer-dock__inner {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14px 18px 16px;
+  background: var(--beige-dark);
+  border-radius: 0 0 18px 18px;
+  border: none;
+  position: relative;
+}
+
+.timer-dock__inner > * {
+  position: relative;
+  z-index: 1;
+}
+
+body.ext-ov-body.is-timer-dragging {
+  cursor: grabbing;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.timer-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(18px, 5vw, 40px);
+  flex-wrap: wrap;
+}
+
+.timer-row--float {
+  justify-content: flex-start;
+  gap: 12px;
+  flex-wrap: nowrap;
+}
+
+.timer-dock .timer-time {
+  font-size: clamp(1.05rem, 3vw, 1.35rem);
+}
+
+.timer-dock .phase-badge {
+  font-size: 0.58rem;
+  padding: 3px 9px;
+}
+
+.timer-ring-wrap--float {
+  width: 108px;
+  height: 108px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.timer-ring-wrap .timer-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 4px 0 rgba(26, 18, 8, 0.08));
+}
+
+.ring-track {
+  fill: none;
+  stroke: var(--beige-edge);
+  stroke-width: 8;
+}
+
+.ring-progress {
+  fill: none;
+  stroke: var(--red);
+  stroke-width: 8;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.9s linear, stroke 0.4s;
+}
+
+.timer-display {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.timer-time {
+  font-family: 'Fredoka One', cursive;
+  font-size: clamp(1.35rem, 4.2vw, 1.85rem);
+  font-weight: 400;
+  color: var(--ink);
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+}
+
+.phase-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: var(--radius-btn);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: lowercase;
+  background: var(--coral-soft);
+  color: var(--red);
+  border: 2px solid var(--ink);
+  box-shadow: 2px 2px 0 var(--ink);
+  transition: background 0.4s, color 0.4s;
+}
+
+.phase-badge.break {
+  background: var(--mint-soft);
+  color: #1f7a48;
+  border-color: var(--green);
+}
+
+.phase-badge.long-break {
+  background: var(--pool-soft);
+  color: #1243a0;
+  border-color: var(--blue);
+}
+
+.timer-side--float {
+  flex: 1 1 auto;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.sessions {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: var(--radius-btn);
+  background: var(--beige-dark);
+  border: 2.5px solid var(--ink);
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+.session-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--beige-edge);
+  border: 2px solid var(--ink);
+  transition: background 0.3s, transform 0.2s;
+}
+
+.session-dot.done {
+  background: var(--yellow);
+}
+
+.session-dot.active {
+  background: var(--red);
+  transform: scale(1.3);
+  box-shadow: 0 0 0 3px rgba(232, 57, 42, 0.28);
+}
+
+.btn-group--float {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-group--float .btn {
+  padding: 8px 14px;
+  font-size: 0.78rem;
+}
+
+.btn {
+  padding: 10px 22px;
+  border-radius: var(--radius-btn);
+  border: 2.5px solid var(--ink);
+  font-family: 'Fredoka One', cursive;
+  font-size: 0.9rem;
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  text-transform: lowercase;
+  cursor: pointer;
+  box-shadow: var(--card-shadow);
+  transition: transform 0.1s, box-shadow 0.1s, background 0.12s, color 0.12s;
+}
+
+.btn:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: var(--card-shadow-lg);
+}
+
+.btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--ink);
+}
+
+.btn--start {
+  border-color: var(--ink);
+  color: var(--red);
+  background: var(--beige);
+}
+
+.btn--start:hover {
+  background: var(--red);
+  color: #fff;
+}
+
+.btn--start.running {
+  border-color: var(--ink);
+  color: #1f7a48;
+  background: var(--beige);
+}
+
+.btn--start.running:hover {
+  background: var(--green);
+  color: #fff;
+}
+
+.btn--reset {
+  border-color: var(--ink);
+  color: var(--ink-light);
+  background: var(--beige-dark);
+}
+
+.btn--reset:hover {
+  background: var(--beige);
+  color: var(--ink);
+}
+
+.timer-dock .btn,
+.timer-dock .timer-dock__pin-btn,
+.timer-dock a {
+  pointer-events: auto !important;
+  cursor: pointer;
+}
+
+/* Bottom creature lane (index.html–style) */
+/* Same z-index as .timer-dock (3601) but after it in the DOM, so the strip paints
+   above a dock that was dragged to the bottom and would otherwise cover creatures. */
+.ext-creature-lane {
+  position: fixed;
+  z-index: 2147483601;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 72px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.ext-creature {
+  position: absolute;
+  bottom: 8px;
+  cursor: pointer;
+  z-index: 3;
+  filter: drop-shadow(2px 2px 0 rgba(0, 0, 0, 0.25));
+  transition: transform 0.1s;
+  pointer-events: auto !important;
+  touch-action: auto;
+  transform: translateZ(0);
+}
+
+.ext-creature:hover {
+  transform: scale(1.15) translateY(-4px) translateZ(0);
+  z-index: 2;
+}
+
+/* Toast */
+.ext-notif {
+  position: fixed;
+  top: 130px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2147483602;
+  max-width: min(92vw, 400px);
+  text-align: center;
+  background: rgba(36, 32, 44, 0.92);
+  color: #faf8ff;
+  padding: 8px 20px;
+  border-radius: var(--radius-btn);
+  font-size: 0.78rem;
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.35s;
+}
+
+.ext-notif--show {
+  opacity: 1;
+}
+
+/* Reward pop */
+.ext-reward-burst {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 2147484000;
+  max-width: min(280px, 90vw);
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 2px solid var(--cartoon-ink);
+  box-shadow: var(--cartoon-shadow);
+  font-family: 'Fredoka One', cursive, system-ui, sans-serif;
+  font-size: clamp(0.95rem, 3.2vw, 1.15rem);
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(0.75);
+  opacity: 0;
+  animation: ext-reward-burst-pop 0.92s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.ext-reward-burst--catch {
+  background: linear-gradient(180deg, #e8fff0 0%, #5ad18b 100%);
+  color: var(--cartoon-ink);
+}
+
+@keyframes ext-reward-burst-pop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50% + 6px) scale(0.55) rotate(-4deg);
+  }
+  18% {
+    opacity: 1;
+    transform: translate(-50%, calc(-50% + 8px)) scale(1.12) rotate(2deg);
+  }
+  40% {
+    opacity: 1;
+    transform: translate(-50%, calc(-50% + 12px)) scale(1.05) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 16px)) scale(1.08) rotate(0deg);
+  }
+}

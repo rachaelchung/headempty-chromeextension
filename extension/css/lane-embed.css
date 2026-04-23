@@ -1,0 +1,92 @@
+/* Bottom creature lane in a thin full-width iframe (separate from timer). */
+
+:root {
+  --cartoon-ink: #1a1208;
+  --cartoon-shadow: 4px 4px 0 rgba(26, 18, 8, 0.22);
+  --mint: #5ad18b;
+  --radius-btn: 999px;
+}
+
+html,
+body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: transparent !important;
+  pointer-events: none;
+  font-family: 'Nunito', system-ui, sans-serif;
+}
+
+#extCreatureLane {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.ext-creature {
+  position: absolute;
+  bottom: 8px;
+  cursor: pointer;
+  z-index: 1;
+  filter: drop-shadow(2px 2px 0 rgba(0, 0, 0, 0.25));
+  transition: transform 0.1s;
+  pointer-events: auto;
+}
+
+.ext-creature:hover {
+  transform: scale(1.15) translateY(-4px);
+  z-index: 2;
+}
+
+.ext-reward-burst {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 2147484000;
+  max-width: min(280px, 90vw);
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 2px solid var(--cartoon-ink);
+  box-shadow: var(--cartoon-shadow);
+  font-family: 'Fredoka One', cursive, system-ui, sans-serif;
+  font-size: clamp(0.95rem, 3.2vw, 1.15rem);
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(0.75);
+  opacity: 0;
+  animation: ext-reward-burst-pop 0.92s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.ext-reward-burst--catch {
+  background: linear-gradient(180deg, #e8fff0 0%, #5ad18b 100%);
+  color: var(--cartoon-ink);
+}
+
+@keyframes ext-reward-burst-pop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.55) rotate(-4deg);
+  }
+  18% {
+    opacity: 1;
+    transform: translate(-50%, calc(-50% - 6px)) scale(1.12) rotate(2deg);
+  }
+  40% {
+    opacity: 1;
+    transform: translate(-50%, calc(-50% - 18px)) scale(1.05) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% - 64px)) scale(1.08) rotate(0deg);
+  }
+}

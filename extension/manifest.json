@@ -1,0 +1,75 @@
+{
+  "manifest_version": 3,
+  "name": "head empty — focus overlay",
+  "version": "0.1.0",
+  "description": "Floating pomodoro timer and creature lane while you browse. Pauses on sites you mark as off-limits.",
+  "icons": {
+    "512": "icons/icon-512.png"
+  },
+  "action": {
+    "default_icon": {
+      "512": "icons/icon-512.png"
+    },
+    "default_title": "head empty — open menu for account / API settings",
+    "default_popup": "popup.html"
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "exclude_matches": [
+        "http://127.0.0.1:5500/*",
+        "http://localhost:5500/*",
+        "https://rachaelchung.github.io/113Capstone/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle",
+      "all_frames": false
+    },
+    {
+      "matches": [
+        "http://127.0.0.1/*",
+        "http://localhost/*",
+        "https://127.0.0.1/*",
+        "https://localhost/*",
+        "https://*.github.io/*"
+      ],
+      "js": ["content-app-auth.js"],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "timer.html",
+        "lane.html",
+        "overlay.html",
+        "overlay-timer.html",
+        "overlay-lane.html",
+        "overlay.css",
+        "overlay.js",
+        "overlay-timer.js",
+        "overlay-lane.js",
+        "css/*",
+        "lib/*",
+        "data/*"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "permissions": ["storage", "tabs"],
+  "host_permissions": [
+    "http://127.0.0.1:8000/*",
+    "http://127.0.0.1:8001/*",
+    "http://localhost:8000/*",
+    "http://localhost:8001/*",
+    "https://*.onrender.com/*"
+  ]
+}

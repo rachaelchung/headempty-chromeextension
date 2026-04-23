@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en" class="ext-ov-html">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>head empty — timer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/timer-embed.css" />
+</head>
+<body class="ext-ov-body">
+  <div id="extNotif" class="ext-notif" role="status" aria-live="polite"></div>
+
+  <aside id="timerDock" class="timer-dock" aria-label="Pomodoro timer">
+    <div class="timer-dock__shell" id="timerDockShell">
+      <div
+        class="timer-dock__handle"
+        id="timerDockHandle"
+        role="group"
+        aria-label="Timer title bar"
+        tabindex="0"
+        data-drag-hint="Drag to move timer"
+        title="drag the grip to move"
+      >
+        <span class="timer-dock__handle-spacer" aria-hidden="true"></span>
+        <span class="timer-dock__grip" aria-hidden="true" id="timerDockGrip" title="drag to move">
+          <span></span><span></span><span></span>
+        </span>
+        <button
+          type="button"
+          class="timer-dock__pin-btn"
+          id="timerDockMinBtn"
+          aria-pressed="false"
+          aria-label="Minimize timer to a side tab"
+          title="minimize to side tab"
+        >⟩</button>
+      </div>
+      <div class="ext-forbidden-wrap">
+        <div id="extForbiddenBar" class="ext-forbidden-bar" hidden>forbidden site — timer paused</div>
+      </div>
+      <div class="timer-dock__inner" id="timerDockInner">
+        <div class="timer-row timer-row--float">
+          <div class="timer-ring-wrap timer-ring-wrap--float">
+            <svg class="timer-svg" viewBox="0 0 120 120" aria-hidden="true">
+              <circle class="ring-track" cx="60" cy="60" r="50" />
+              <circle
+                class="ring-progress"
+                id="progressRing"
+                cx="60"
+                cy="60"
+                r="50"
+                stroke-dasharray="314"
+                stroke-dashoffset="0"
+                transform="rotate(-90 60 60)"
+              />
+            </svg>
+            <div class="timer-display">
+              <div class="timer-time" id="timerDisplay">25:00</div>
+              <div class="phase-badge" id="phaseBadge">focus</div>
+            </div>
+          </div>
+          <div class="timer-side timer-side--float">
+            <div class="sessions" id="sessions">
+              <div class="session-dot active" id="sd0"></div>
+              <div class="session-dot" id="sd1"></div>
+              <div class="session-dot" id="sd2"></div>
+              <div class="session-dot" id="sd3"></div>
+            </div>
+            <div class="btn-group btn-group--float">
+              <button type="button" class="btn btn--start" id="startBtn">start</button>
+              <button type="button" class="btn btn--reset" id="resetBtn">reset</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <script src="lib/timer.js"></script>
+  <script src="lib/timer-embed.js"></script>
+</body>
+</html>
